@@ -2,4 +2,5 @@ var x = 5;
 print 123 + x;
 print "abc" + "def";
 // print y;
-var x = "a";
+x = "a";
+print x;

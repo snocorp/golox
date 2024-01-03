@@ -25,7 +25,7 @@ func (e *Environment) get(name *token) (any, error) {
 }
 
 func (e *Environment) assign(name *token, value any) error {
-	value, ok := e.values[name.lexeme]
+	_, ok := e.values[name.lexeme]
 	if !ok {
 		return &RuntimeError{t: name, message: "Undefined variable '" + name.lexeme + "'."}
 	}
