@@ -64,7 +64,10 @@ func printFile(path string) error {
 
 	printer := &astPrinter{}
 	for _, s := range statements {
-		s.accept(printer)
+		err = s.accept(printer)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

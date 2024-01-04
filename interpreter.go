@@ -19,7 +19,7 @@ type interpreter struct {
 
 func newInterpreter() *interpreter {
 	return &interpreter{
-		env: &Environment{values: map[string]any{}},
+		env: newEnvironment(nil),
 	}
 }
 
@@ -135,6 +135,10 @@ func (v *interpreter) visitVariableExpr(e *Variable[any]) (any, error) {
 	return v.env.get(e.name)
 }
 
+func (v *interpreter) visitBlockStmt(stmt *Block[any]) error {
+	return v.executeBlock(stmt.statements, newEnvironment(v.env))
+}
+
 func (v *interpreter) visitExpressionStmt(stmt *Expression[any]) error {
 	_, err := v.evaluate(stmt.expression)
 
@@ -170,6 +174,21 @@ func (v *interpreter) evaluate(e Expr[any]) (any, error) {
 
 func (v *interpreter) execute(stmt Stmt[any]) error {
 	return stmt.accept(v)
+}
+
+func (v *interpreter) executeBlock(statements []Stmt[any], env *Environment) (err error) {
+	prevEnv := v.env
+	defer func() { v.env = prevEnv }()
+
+	v.env = env
+	for _, s := range statements {
+		err = v.execute(s)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func stringify(object any) string {

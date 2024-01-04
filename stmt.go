@@ -4,6 +4,14 @@ type Stmt[T any] interface {
 	accept(v Visitor[T]) error
 }
 
+type Block[T any] struct {
+	statements []Stmt[T]
+}
+
+func (e *Block[T]) accept(v Visitor[T]) error {
+	return v.visitBlockStmt(e)
+}
+
 type Expression[T any] struct {
 	expression Expr[T]
 }

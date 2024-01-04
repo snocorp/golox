@@ -8,6 +8,7 @@ type Visitor[T any] interface {
 	visitUnaryExpr(e *Unary[T]) (T, error)
 	visitVariableExpr(e *Variable[T]) (T, error)
 
+	visitBlockStmt(s *Block[T]) error
 	visitExpressionStmt(s *Expression[T]) error
 	visitPrintStmt(s *Print[T]) error
 	visitVarStmt(s *Var[T]) error

@@ -5,23 +5,17 @@ import (
 	"strings"
 )
 
-type astPrinter struct{}
-
-func (p *astPrinter) print(e Expr[string]) {
-	s, err := e.accept(p)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(s)
+type astPrinter struct {
+	indent int
 }
 
 func (p *astPrinter) visitAssignExpr(e *Assign[string]) (string, error) {
-	value, err := p.parenthesize("assign", e.value)
+	value, err := p.parenthesize(fmt.Sprintf("%v =", e.name.lexeme), e.value)
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%v = %v", e.name.lexeme, value), nil
+	return value, nil
 }
 
 func (p *astPrinter) visitBinaryExpr(e *Binary[string]) (string, error) {
@@ -47,22 +41,55 @@ func (p *astPrinter) visitVariableExpr(e *Variable[string]) (string, error) {
 	return e.name.lexeme, nil
 }
 
-func (p *astPrinter) visitExpressionStmt(s *Expression[string]) error {
-	_, err := p.parenthesize("stmt", s.expression)
+func (p *astPrinter) visitBlockStmt(s *Block[string]) error {
+	p.println("{")
+	p.indent = p.indent + 2
+	for _, s := range s.statements {
+		err := s.accept(p)
+		if err != nil {
+			return err
+		}
+	}
+	p.indent = p.indent - 2
+	p.println("}")
+	return nil
+}
 
-	return err
+func (p *astPrinter) visitExpressionStmt(s *Expression[string]) error {
+	result, err := p.parenthesize("stmt", s.expression)
+	if err != nil {
+		return err
+	}
+
+	p.println(result)
+
+	return nil
 }
 
 func (p *astPrinter) visitPrintStmt(s *Print[string]) error {
-	_, err := p.parenthesize("print", s.expression)
+	result, err := p.parenthesize("print", s.expression)
+	if err != nil {
+		return err
+	}
 
-	return err
+	p.println(result)
+
+	return nil
 }
 
 func (p *astPrinter) visitVarStmt(s *Var[string]) error {
-	_, err := p.parenthesize(fmt.Sprintf("var %v", s.name.literal), s.initializer)
+	result, err := p.parenthesize(fmt.Sprintf("var %v", s.name.literal), s.initializer)
+	if err != nil {
+		return err
+	}
 
-	return err
+	p.println(result)
+
+	return nil
+}
+
+func (p *astPrinter) println(s string) {
+	fmt.Printf("%v%s\n", strings.Repeat(" ", p.indent), s)
 }
 
 func (p *astPrinter) parenthesize(name string, expressions ...Expr[string]) (string, error) {

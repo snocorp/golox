@@ -63,8 +63,30 @@ func (p *Parser[T]) statement() (Stmt[T], error) {
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
+	if p.match(LEFT_BRACE) {
+		return p.block()
+	}
 
 	return p.expressionStatement()
+}
+
+func (p *Parser[T]) block() (*Block[T], error) {
+	statements := []Stmt[T]{}
+
+	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
+		s, err := p.declaration()
+		if err != nil {
+			return nil, err
+		}
+		statements = append(statements, s)
+	}
+
+	_, err := p.consume(RIGHT_BRACE, "Expect '}' after block.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Block[T]{statements: statements}, nil
 }
 
 func (p *Parser[T]) varDeclaration() (Stmt[T], error) {
