@@ -60,6 +60,9 @@ func (p *Parser[T]) declaration() (Stmt[T], error) {
 }
 
 func (p *Parser[T]) statement() (Stmt[T], error) {
+	if p.match(IF) {
+		return p.ifStatement()
+	}
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
@@ -68,6 +71,38 @@ func (p *Parser[T]) statement() (Stmt[T], error) {
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *Parser[T]) ifStatement() (Stmt[T], error) {
+	_, err := p.consume(LEFT_PAREN, "Expect '(' after 'if'.")
+	if err != nil {
+		return nil, err
+	}
+
+	condition, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(RIGHT_PAREN, "Expect ')' after if condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	thenBranch, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	var elseBranch Stmt[T]
+	if p.match(ELSE) {
+		elseBranch, err = p.statement()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &If[T]{condition, thenBranch, elseBranch}, nil
 }
 
 func (p *Parser[T]) block() (*Block[T], error) {
@@ -145,7 +180,7 @@ func (p *Parser[T]) expression() (Expr[T], error) {
 
 func (p *Parser[T]) assignment() (Expr[T], error) {
 	var err error
-	expr, err := p.equality()
+	expr, err := p.or()
 	if err != nil {
 		return nil, err
 	}
@@ -164,6 +199,44 @@ func (p *Parser[T]) assignment() (Expr[T], error) {
 		}
 
 		return nil, p.error(equals, "Invalid assignment target.")
+	}
+
+	return expr, nil
+}
+
+func (p *Parser[T]) or() (Expr[T], error) {
+	expr, err := p.and()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(OR) {
+		operator := p.previous()
+		right, err := p.and()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = &Logical[T]{left: expr, operator: operator, right: right}
+	}
+
+	return expr, nil
+}
+
+func (p *Parser[T]) and() (Expr[T], error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(AND) {
+		operator := p.previous()
+		right, err := p.equality()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = &Logical[T]{left: expr, operator: operator, right: right}
 	}
 
 	return expr, nil

@@ -20,6 +20,16 @@ func (e *Expression[T]) accept(v Visitor[T]) error {
 	return v.visitExpressionStmt(e)
 }
 
+type If[T any] struct {
+	condition Expr[T]
+	thenBranch Stmt[T]
+	elseBranch Stmt[T]
+}
+
+func (e *If[T]) accept(v Visitor[T]) error {
+	return v.visitIfStmt(e)
+}
+
 type Print[T any] struct {
 	expression Expr[T]
 }

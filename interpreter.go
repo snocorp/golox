@@ -113,6 +113,25 @@ func (v *interpreter) visitLiteralExpr(e *Literal[any]) (any, error) {
 	return e.value, nil
 }
 
+func (v *interpreter) visitLogicalExpr(e *Logical[any]) (any, error) {
+	left, err := v.evaluate(e.left)
+	if err != nil {
+		return nil, err
+	}
+
+	if e.operator.tokenType == OR {
+		if isTruthy(left) {
+			return left, nil
+		}
+	} else {
+		if !isTruthy(left) {
+			return left, nil
+		}
+	}
+
+	return v.evaluate(e.right)
+}
+
 func (v *interpreter) visitUnaryExpr(e *Unary[any]) (any, error) {
 	right, err := v.evaluate(e.right)
 	if err != nil {
@@ -143,6 +162,26 @@ func (v *interpreter) visitExpressionStmt(stmt *Expression[any]) error {
 	_, err := v.evaluate(stmt.expression)
 
 	return err
+}
+
+func (v *interpreter) visitIfStmt(stmt *If[any]) error {
+	value, err := v.evaluate(stmt.condition)
+	if err != nil {
+		return err
+	}
+
+	if isTruthy(value) {
+		err = v.execute(stmt.thenBranch)
+		if err != nil {
+			return err
+		}
+	} else if stmt.elseBranch != nil {
+		err = v.execute(stmt.elseBranch)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (v *interpreter) visitPrintStmt(stmt *Print[any]) error {

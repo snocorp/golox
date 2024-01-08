@@ -39,6 +39,16 @@ func (e *Literal[T]) accept(v Visitor[T]) (T, error) {
 	return v.visitLiteralExpr(e)
 }
 
+type Logical[T any] struct {
+	left Expr[T]
+	operator *token
+	right Expr[T]
+}
+
+func (e *Logical[T]) accept(v Visitor[T]) (T, error) {
+	return v.visitLogicalExpr(e)
+}
+
 type Unary[T any] struct {
 	operator *token
 	right Expr[T]

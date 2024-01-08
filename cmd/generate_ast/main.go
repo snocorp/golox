@@ -21,6 +21,7 @@ func main() {
 		"Binary   : left Expr[T], operator *token, right Expr[T]",
 		"Grouping : expression Expr[T]",
 		"Literal  : value any",
+		"Logical  : left Expr[T], operator *token, right Expr[T]",
 		"Unary    : operator *token, right Expr[T]",
 		"Variable : name *token",
 	})
@@ -32,6 +33,7 @@ func main() {
 	err = defineAst(outputDir, "Stmt", "error", []string{
 		"Block      : statements []Stmt[T]",
 		"Expression : expression Expr[T]",
+		"If         : condition Expr[T], thenBranch Stmt[T], elseBranch Stmt[T]",
 		"Print      : expression Expr[T]",
 		"Var        : name *token, initializer Expr[T]",
 	})

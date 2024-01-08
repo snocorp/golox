@@ -33,6 +33,10 @@ func (p *astPrinter) visitLiteralExpr(e *Literal[string]) (string, error) {
 	return fmt.Sprintf("%v", e.value), nil
 }
 
+func (p *astPrinter) visitLogicalExpr(e *Logical[string]) (string, error) {
+	return p.parenthesize(e.operator.lexeme, e.left, e.right)
+}
+
 func (p *astPrinter) visitUnaryExpr(e *Unary[string]) (string, error) {
 	return p.parenthesize(e.operator.lexeme, e.right)
 }
@@ -62,6 +66,30 @@ func (p *astPrinter) visitExpressionStmt(s *Expression[string]) error {
 	}
 
 	p.println(result)
+
+	return nil
+}
+
+func (p *astPrinter) visitIfStmt(ifStmt *If[string]) error {
+	result, err := p.parenthesize("if", ifStmt.condition)
+	if err != nil {
+		return err
+	}
+
+	p.println(result)
+	p.indent = p.indent + 2
+	ifStmt.thenBranch.accept(p)
+	p.indent = p.indent - 2
+
+	if ifStmt.elseBranch != nil {
+		result, err = p.parenthesize("else")
+		if err != nil {
+			return err
+		}
+		p.println(result)
+		ifStmt.elseBranch.accept(p)
+		p.indent = p.indent - 2
+	}
 
 	return nil
 }
