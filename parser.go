@@ -60,17 +60,116 @@ func (p *Parser[T]) declaration() (Stmt[T], error) {
 }
 
 func (p *Parser[T]) statement() (Stmt[T], error) {
+	if p.match(FOR) {
+		return p.forStatement()
+	}
 	if p.match(IF) {
 		return p.ifStatement()
 	}
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
+	if p.match(WHILE) {
+		return p.whileStatement()
+	}
 	if p.match(LEFT_BRACE) {
 		return p.block()
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *Parser[T]) forStatement() (Stmt[T], error) {
+	_, err := p.consume(LEFT_PAREN, "Expect '(' after 'for'.")
+	if err != nil {
+		return nil, err
+	}
+
+	var initializer Stmt[T]
+	if p.match(SEMICOLON) {
+		initializer = nil
+	} else if p.match(VAR) {
+		initializer, err = p.varDeclaration()
+	} else {
+		initializer, err = p.expressionStatement()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var condition Expr[T]
+	if !p.check(SEMICOLON) {
+		condition, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = p.consume(SEMICOLON, "Expect ';' after loop condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	var increment Expr[T]
+	if !p.check(RIGHT_PAREN) {
+		increment, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.consume(RIGHT_PAREN, "Expect ')' after for clauses.")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	if increment != nil {
+		body = &Block[T]{
+			statements: []Stmt[T]{
+				body,
+				&Expression[T]{increment},
+			},
+		}
+	}
+
+	if condition == nil {
+		condition = &Literal[T]{true}
+	}
+	body = &While[T]{condition, body}
+
+	if initializer != nil {
+		body = &Block[T]{statements: []Stmt[T]{initializer, body}}
+	}
+
+	return body, nil
+}
+
+func (p *Parser[T]) whileStatement() (Stmt[T], error) {
+	_, err := p.consume(LEFT_PAREN, "Expect '(' after 'while'.")
+	if err != nil {
+		return nil, err
+	}
+
+	condition, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(RIGHT_PAREN, "Expect ')' after condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	return &While[T]{condition: condition, body: body}, nil
 }
 
 func (p *Parser[T]) ifStatement() (Stmt[T], error) {

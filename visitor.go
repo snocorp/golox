@@ -14,4 +14,5 @@ type Visitor[T any] interface {
 	visitIfStmt(ifStmt *If[T]) error
 	visitPrintStmt(s *Print[T]) error
 	visitVarStmt(s *Var[T]) error
+	visitWhileStmt(s *While[T]) error
 }

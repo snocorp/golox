@@ -116,6 +116,20 @@ func (p *astPrinter) visitVarStmt(s *Var[string]) error {
 	return nil
 }
 
+func (p *astPrinter) visitWhileStmt(whileStmt *While[string]) error {
+	result, err := p.parenthesize("while", whileStmt.condition)
+	if err != nil {
+		return err
+	}
+
+	p.println(result)
+	p.indent = p.indent + 2
+	whileStmt.body.accept(p)
+	p.indent = p.indent - 2
+
+	return nil
+}
+
 func (p *astPrinter) println(s string) {
 	fmt.Printf("%v%s\n", strings.Repeat(" ", p.indent), s)
 }

@@ -207,6 +207,23 @@ func (v *interpreter) visitVarStmt(s *Var[any]) (err error) {
 	return err
 }
 
+func (v *interpreter) visitWhileStmt(whileStmt *While[any]) error {
+	result, err := v.evaluate(whileStmt.condition)
+	if err != nil {
+		return err
+	}
+
+	for isTruthy(result) {
+		v.execute(whileStmt.body)
+
+		result, err = v.evaluate(whileStmt.condition)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (v *interpreter) evaluate(e Expr[any]) (any, error) {
 	return e.accept(v)
 }

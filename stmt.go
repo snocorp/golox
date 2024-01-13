@@ -47,3 +47,12 @@ func (e *Var[T]) accept(v Visitor[T]) error {
 	return v.visitVarStmt(e)
 }
 
+type While[T any] struct {
+	condition Expr[T]
+	body Stmt[T]
+}
+
+func (e *While[T]) accept(v Visitor[T]) error {
+	return v.visitWhileStmt(e)
+}
+

@@ -36,6 +36,7 @@ func main() {
 		"If         : condition Expr[T], thenBranch Stmt[T], elseBranch Stmt[T]",
 		"Print      : expression Expr[T]",
 		"Var        : name *token, initializer Expr[T]",
+		"While      : condition Expr[T], body Stmt[T]",
 	})
 	if err != nil {
 		fmt.Println(err)
