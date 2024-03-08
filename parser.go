@@ -423,7 +423,51 @@ func (p *Parser[T]) unary() (Expr[T], error) {
 		return &Unary[T]{operator, right}, nil
 	}
 
-	return p.primary()
+	return p.call()
+}
+
+func (p *Parser[T]) call() (Expr[T], error) {
+	expr, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(LEFT_PAREN) {
+		expr, err = p.finishCall(expr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return expr, nil
+}
+
+func (p *Parser[T]) finishCall(callee Expr[T]) (Expr[T], error) {
+	arguments := []Expr[T]{}
+	if !p.check(RIGHT_PAREN) {
+		for {
+			arg, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+
+			if len(arguments) >= 255 {
+				return nil, p.error(p.peek(), "Can't have more than 255 arguments.")
+			}
+
+			arguments = append(arguments, arg)
+			if !p.match(COMMA) {
+				break
+			}
+		}
+	}
+
+	paren, err := p.consume(RIGHT_PAREN, "Expect ')' after arguments.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Call[T]{callee, paren, arguments}, nil
 }
 
 func (p *Parser[T]) primary() (Expr[T], error) {

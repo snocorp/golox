@@ -23,6 +23,16 @@ func (e *Binary[T]) accept(v Visitor[T]) (T, error) {
 	return v.visitBinaryExpr(e)
 }
 
+type Call[T any] struct {
+	callee Expr[T]
+	paren *token
+	arguments []Expr[T]
+}
+
+func (e *Call[T]) accept(v Visitor[T]) (T, error) {
+	return v.visitCallExpr(e)
+}
+
 type Grouping[T any] struct {
 	expression Expr[T]
 }

@@ -13,13 +13,21 @@ func (err *RuntimeError) Error() string {
 	return fmt.Sprintf("[line %v] Runtime Error: %s", err.t.line, err.message)
 }
 
+type LoxCallable interface {
+	arity() int
+	call(v *interpreter, arguments []any) (any, error)
+}
+
 type interpreter struct {
 	env *Environment
 }
 
 func newInterpreter() *interpreter {
+	globals := newEnvironment(nil)
+	globals.define(&token{lexeme: "clock"}, &clock{})
+
 	return &interpreter{
-		env: newEnvironment(nil),
+		env: newEnvironment(globals),
 	}
 }
 
@@ -103,6 +111,37 @@ func (v *interpreter) visitBinaryExpr(e *Binary[any]) (any, error) {
 
 	// Unreachable
 	return nil, &RuntimeError{t: e.operator, message: "Unexpected binary expression"}
+}
+
+func (v *interpreter) visitCallExpr(e *Call[any]) (any, error) {
+	callee, err := v.evaluate(e.callee)
+	if err != nil {
+		return nil, err
+	}
+
+	arguments := []any{}
+	for _, argument := range e.arguments {
+		value, err := v.evaluate(argument)
+		if err != nil {
+			return nil, err
+		}
+
+		arguments = append(arguments, value)
+	}
+
+	function, ok := callee.(LoxCallable)
+	if !ok {
+		return nil, &RuntimeError{t: e.paren, message: "Can only call functions and classes."}
+	}
+
+	if function.arity() != len(arguments) {
+		return nil, &RuntimeError{
+			t:       e.paren,
+			message: fmt.Sprintf("Expected %v arguments but got %v.", function.arity(), len(arguments)),
+		}
+	}
+
+	return function.call(v, arguments)
 }
 
 func (v *interpreter) visitGroupingExpr(e *Grouping[any]) (any, error) {

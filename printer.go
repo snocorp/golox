@@ -130,6 +130,15 @@ func (p *astPrinter) visitWhileStmt(whileStmt *While[string]) error {
 	return nil
 }
 
+func (p *astPrinter) visitCallExpr(e *Call[string]) (string, error) {
+	callee, err := e.callee.accept(p)
+	if err != nil {
+		return "", err
+	}
+
+	return p.parenthesize(callee, e.arguments...)
+}
+
 func (p *astPrinter) println(s string) {
 	fmt.Printf("%v%s\n", strings.Repeat(" ", p.indent), s)
 }

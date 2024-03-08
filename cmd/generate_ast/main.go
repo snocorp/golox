@@ -19,6 +19,7 @@ func main() {
 	err := defineAst(outputDir, "Expr", "(T, error)", []string{
 		"Assign   : name *token, value Expr[T]",
 		"Binary   : left Expr[T], operator *token, right Expr[T]",
+		"Call     : callee Expr[T], paren *token, arguments []Expr[T]",
 		"Grouping : expression Expr[T]",
 		"Literal  : value any",
 		"Logical  : left Expr[T], operator *token, right Expr[T]",
