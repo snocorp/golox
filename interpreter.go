@@ -19,7 +19,8 @@ type LoxCallable interface {
 }
 
 type interpreter struct {
-	env *Environment
+	globals *Environment
+	env     *Environment
 }
 
 func newInterpreter() *interpreter {
@@ -27,7 +28,8 @@ func newInterpreter() *interpreter {
 	globals.define(&token{lexeme: "clock"}, &clock{})
 
 	return &interpreter{
-		env: newEnvironment(globals),
+		globals: globals,
+		env:     newEnvironment(globals),
 	}
 }
 
@@ -260,6 +262,16 @@ func (v *interpreter) visitWhileStmt(whileStmt *While[any]) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (v *interpreter) visitFunctionStmt(funcStmt *Function[any]) error {
+	function := &LoxFunction{funcStmt}
+	err := v.env.define(funcStmt.name, function)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

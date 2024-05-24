@@ -130,6 +130,22 @@ func (p *astPrinter) visitWhileStmt(whileStmt *While[string]) error {
 	return nil
 }
 
+func (p *astPrinter) visitFunctionStmt(funcStmt *Function[string]) error {
+	params := make([]string, len(funcStmt.params))
+	for i, p := range funcStmt.params {
+		params[i] = p.lexeme
+	}
+
+	result := fmt.Sprintf("%v(%v)", funcStmt.name.lexeme, strings.Join(params, ", "))
+
+	p.println(result)
+	p.indent = p.indent + 2
+	funcStmt.body.accept(p)
+	p.indent = p.indent - 2
+
+	return nil
+}
+
 func (p *astPrinter) visitCallExpr(e *Call[string]) (string, error) {
 	callee, err := e.callee.accept(p)
 	if err != nil {

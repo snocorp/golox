@@ -20,6 +20,16 @@ func (e *Expression[T]) accept(v Visitor[T]) error {
 	return v.visitExpressionStmt(e)
 }
 
+type Function[T any] struct {
+	name *token
+	params []*token
+	body *Block[T]
+}
+
+func (e *Function[T]) accept(v Visitor[T]) error {
+	return v.visitFunctionStmt(e)
+}
+
 type If[T any] struct {
 	condition Expr[T]
 	thenBranch Stmt[T]

@@ -46,6 +46,9 @@ func (p *Parser[T]) parse() ([]Stmt[T], error) {
 }
 
 func (p *Parser[T]) declaration() (Stmt[T], error) {
+	if p.match(FUN) {
+		return p.function("function")
+	}
 	if p.match(VAR) {
 		return p.varDeclaration()
 	}
@@ -77,6 +80,57 @@ func (p *Parser[T]) statement() (Stmt[T], error) {
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *Parser[T]) function(kind string) (Stmt[T], error) {
+	name, err := p.consume(IDENTIFIER, "Expect "+kind+" name.")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(LEFT_PAREN, "Expect '(' after "+kind+" name.")
+	if err != nil {
+		return nil, err
+	}
+
+	parameters := []*token{}
+	if !p.check(RIGHT_PAREN) {
+		for {
+			if len(parameters) >= 255 {
+				return nil, p.error(p.peek(), "Can't have more than 255 parameters.")
+			}
+
+			paramName, err := p.consume(IDENTIFIER, "Expect parameter name.")
+			if err != nil {
+				return nil, err
+			}
+			parameters = append(parameters, paramName)
+
+			if !p.match(COMMA) {
+				break
+			}
+		}
+	}
+	_, err = p.consume(RIGHT_PAREN, "Expect ')' after parameters.")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(LEFT_BRACE, "Expect '{' before "+kind+" body.")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.block()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Function[T]{
+		name:   name,
+		params: parameters,
+		body:   body,
+	}, nil
 }
 
 func (p *Parser[T]) forStatement() (Stmt[T], error) {

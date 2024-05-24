@@ -12,6 +12,7 @@ type Visitor[T any] interface {
 
 	visitBlockStmt(s *Block[T]) error
 	visitExpressionStmt(s *Expression[T]) error
+	visitFunctionStmt(s *Function[T]) error
 	visitIfStmt(ifStmt *If[T]) error
 	visitPrintStmt(s *Print[T]) error
 	visitVarStmt(s *Var[T]) error
