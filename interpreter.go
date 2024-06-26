@@ -13,6 +13,14 @@ func (err *RuntimeError) Error() string {
 	return fmt.Sprintf("[line %v] Runtime Error: %s", err.t.line, err.message)
 }
 
+type ReturnError struct {
+	value any
+}
+
+func (err *ReturnError) Error() string {
+	return fmt.Sprintf("Return: %s", err.value)
+}
+
 type LoxCallable interface {
 	arity() int
 	call(v *interpreter, arguments []any) (any, error)
@@ -29,7 +37,7 @@ func newInterpreter() *interpreter {
 
 	return &interpreter{
 		globals: globals,
-		env:     newEnvironment(globals),
+		env:     globals,
 	}
 }
 
@@ -235,6 +243,20 @@ func (v *interpreter) visitPrintStmt(stmt *Print[any]) error {
 	return nil
 }
 
+func (v *interpreter) visitReturnStmt(stmt *Return[any]) error {
+	var value any
+	var err error
+	if stmt.value != nil {
+		value, err = v.evaluate(stmt.value)
+	}
+
+	if err == nil {
+		err = &ReturnError{value}
+	}
+
+	return err
+}
+
 func (v *interpreter) visitVarStmt(s *Var[any]) (err error) {
 	var value any
 	if s.initializer != nil {
@@ -255,7 +277,10 @@ func (v *interpreter) visitWhileStmt(whileStmt *While[any]) error {
 	}
 
 	for isTruthy(result) {
-		v.execute(whileStmt.body)
+		err = v.execute(whileStmt.body)
+		if err != nil {
+			return err
+		}
 
 		result, err = v.evaluate(whileStmt.condition)
 		if err != nil {

@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type Environment struct {
 	enclosing *Environment
 	values    map[string]any
@@ -46,4 +48,8 @@ func (e *Environment) assign(name *token, value any) error {
 	e.values[name.lexeme] = value
 
 	return nil
+}
+
+func (e *Environment) String() string {
+	return fmt.Sprintf("%v", e.values)
 }

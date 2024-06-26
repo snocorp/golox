@@ -20,6 +20,13 @@ func (f *LoxFunction) call(v *interpreter, arguments []any) (r any, err error) {
 	}
 
 	err = v.executeBlock(f.declaration.body.statements, env)
+	if err != nil {
+		re, ok := err.(*ReturnError)
+		if ok {
+			return re.value, nil
+		}
+	}
+
 	return nil, err
 }
 

@@ -37,6 +37,7 @@ func main() {
 		"Function   : name *token, params []*token, body *Block[T]",
 		"If         : condition Expr[T], thenBranch Stmt[T], elseBranch Stmt[T]",
 		"Print      : expression Expr[T]",
+		"Return     : keyword *token, value Expr[T]",
 		"Var        : name *token, initializer Expr[T]",
 		"While      : condition Expr[T], body Stmt[T]",
 	})

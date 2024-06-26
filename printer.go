@@ -87,6 +87,7 @@ func (p *astPrinter) visitIfStmt(ifStmt *If[string]) error {
 			return err
 		}
 		p.println(result)
+		p.indent = p.indent + 2
 		ifStmt.elseBranch.accept(p)
 		p.indent = p.indent - 2
 	}
@@ -105,8 +106,19 @@ func (p *astPrinter) visitPrintStmt(s *Print[string]) error {
 	return nil
 }
 
+func (p *astPrinter) visitReturnStmt(s *Return[string]) error {
+	result, err := p.parenthesize("return", s.value)
+	if err != nil {
+		return err
+	}
+
+	p.println(result)
+
+	return nil
+}
+
 func (p *astPrinter) visitVarStmt(s *Var[string]) error {
-	result, err := p.parenthesize(fmt.Sprintf("var %v", s.name.literal), s.initializer)
+	result, err := p.parenthesize(fmt.Sprintf("var %v", s.name.lexeme), s.initializer)
 	if err != nil {
 		return err
 	}
@@ -152,7 +164,7 @@ func (p *astPrinter) visitCallExpr(e *Call[string]) (string, error) {
 		return "", err
 	}
 
-	return p.parenthesize(callee, e.arguments...)
+	return p.parenthesize(fmt.Sprintf("call: %v", callee), e.arguments...)
 }
 
 func (p *astPrinter) println(s string) {

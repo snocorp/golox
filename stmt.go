@@ -48,6 +48,15 @@ func (e *Print[T]) accept(v Visitor[T]) error {
 	return v.visitPrintStmt(e)
 }
 
+type Return[T any] struct {
+	keyword *token
+	value Expr[T]
+}
+
+func (e *Return[T]) accept(v Visitor[T]) error {
+	return v.visitReturnStmt(e)
+}
+
 type Var[T any] struct {
 	name *token
 	initializer Expr[T]
