@@ -147,7 +147,7 @@ func (p *Parser[T]) function(kind string) (Stmt[T], error) {
 	return &Function[T]{
 		name:   name,
 		params: parameters,
-		body:   body,
+		body:   body.statements,
 	}, nil
 }
 

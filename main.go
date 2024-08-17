@@ -130,6 +130,14 @@ func (lox *runner) run(source string) {
 	}
 
 	inter := newInterpreter()
+	resolver := newResolver(inter)
+
+	err = resolver.resolve(statements)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	inter.interpret(statements)
 }
 

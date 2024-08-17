@@ -35,6 +35,20 @@ func (e *Environment) get(name *token) (any, error) {
 	return value, nil
 }
 
+func (e *Environment) getAt(distance int, name string) (any, bool) {
+	value, ok := e.ancestor(distance).values[name]
+	return value, ok
+}
+
+func (e *Environment) ancestor(distance int) *Environment {
+	environment := e
+	for i := 0; i < distance; i++ {
+		environment = environment.enclosing
+	}
+
+	return environment
+}
+
 func (e *Environment) assign(name *token, value any) error {
 	_, ok := e.values[name.lexeme]
 	if !ok {
@@ -48,6 +62,10 @@ func (e *Environment) assign(name *token, value any) error {
 	e.values[name.lexeme] = value
 
 	return nil
+}
+
+func (e *Environment) assignAt(distance int, name *token, value any) {
+	e.ancestor(distance).values[name.lexeme] = value
 }
 
 func (e *Environment) String() string {

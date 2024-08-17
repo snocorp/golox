@@ -152,7 +152,9 @@ func (p *astPrinter) visitFunctionStmt(funcStmt *Function[string]) error {
 
 	p.println(result)
 	p.indent = p.indent + 2
-	funcStmt.body.accept(p)
+	for _, s := range funcStmt.body {
+		s.accept(p)
+	}
 	p.indent = p.indent - 2
 
 	return nil

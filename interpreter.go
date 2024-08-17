@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 )
 
 type RuntimeError struct {
@@ -29,6 +30,7 @@ type LoxCallable interface {
 type interpreter struct {
 	globals *Environment
 	env     *Environment
+	locals  map[Expr[any]]int
 }
 
 func newInterpreter() *interpreter {
@@ -38,6 +40,7 @@ func newInterpreter() *interpreter {
 	return &interpreter{
 		globals: globals,
 		env:     globals,
+		locals:  map[Expr[any]]int{},
 	}
 }
 
@@ -57,9 +60,14 @@ func (v *interpreter) visitAssignExpr(e *Assign[any]) (any, error) {
 		return nil, err
 	}
 
-	err = v.env.assign(e.name, value)
-	if err != nil {
-		return nil, err
+	distance, ok := v.locals[e]
+	if ok {
+		v.env.assignAt(distance, e.name, value)
+	} else {
+		err = v.globals.assign(e.name, value)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return value, nil
@@ -112,7 +120,10 @@ func (v *interpreter) visitBinaryExpr(e *Binary[any]) (any, error) {
 			return leftString + rightString, nil
 		}
 
-		return nil, &RuntimeError{t: e.operator, message: "Operands must be two numbers or two strings."}
+		return nil, &RuntimeError{
+			t:       e.operator,
+			message: fmt.Sprintf("Operands must be two numbers or two strings (%v %v %v).", reflect.TypeOf(left), e.operator.lexeme, reflect.TypeOf(right)),
+		}
 	case BANG_EQUAL:
 		return !isEqual(left, right), nil
 	case EQUAL_EQUAL:
@@ -200,7 +211,7 @@ func (v *interpreter) visitUnaryExpr(e *Unary[any]) (any, error) {
 }
 
 func (v *interpreter) visitVariableExpr(e *Variable[any]) (any, error) {
-	return v.env.get(e.name)
+	return v.lookUpVariable(e.name, e)
 }
 
 func (v *interpreter) visitBlockStmt(stmt *Block[any]) error {
@@ -291,7 +302,7 @@ func (v *interpreter) visitWhileStmt(whileStmt *While[any]) error {
 }
 
 func (v *interpreter) visitFunctionStmt(funcStmt *Function[any]) error {
-	function := &LoxFunction{funcStmt}
+	function := &LoxFunction{funcStmt, v.env}
 	err := v.env.define(funcStmt.name, function)
 	if err != nil {
 		return err
@@ -321,6 +332,23 @@ func (v *interpreter) executeBlock(statements []Stmt[any], env *Environment) (er
 	}
 
 	return nil
+}
+
+func (v *interpreter) resolve(e Expr[any], depth int) {
+	v.locals[e] = depth
+}
+
+func (v *interpreter) lookUpVariable(name *token, expr Expr[any]) (any, error) {
+	distance, ok := v.locals[expr]
+	if ok {
+		value, ok := v.env.getAt(distance, name.lexeme)
+		if !ok {
+			return nil, &RuntimeError{t: name, message: "Variable is not found"}
+		}
+		return value, nil
+	} else {
+		return v.globals.get(name)
+	}
 }
 
 func stringify(object any) string {

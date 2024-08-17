@@ -4,6 +4,7 @@ import "fmt"
 
 type LoxFunction struct {
 	declaration *Function[any]
+	closure     *Environment
 }
 
 func (f *LoxFunction) arity() int {
@@ -11,7 +12,7 @@ func (f *LoxFunction) arity() int {
 }
 
 func (f *LoxFunction) call(v *interpreter, arguments []any) (r any, err error) {
-	env := newEnvironment(v.globals)
+	env := newEnvironment(f.closure)
 	for i, p := range f.declaration.params {
 		err = env.define(p, arguments[i])
 		if err != nil {
@@ -19,7 +20,7 @@ func (f *LoxFunction) call(v *interpreter, arguments []any) (r any, err error) {
 		}
 	}
 
-	err = v.executeBlock(f.declaration.body.statements, env)
+	err = v.executeBlock(f.declaration.body, env)
 	if err != nil {
 		re, ok := err.(*ReturnError)
 		if ok {
