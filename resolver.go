@@ -2,15 +2,26 @@ package main
 
 import (
 	"container/list"
+	"fmt"
 )
+
+type ResolverError struct {
+	t       *token
+	message string
+}
+
+func (err *ResolverError) Error() string {
+	return fmt.Sprintf("[line %v] Resolver Error: %s", err.t.line, err.message)
+}
 
 type resolver struct {
 	i      *interpreter
 	scopes *list.List
+	inFunc bool
 }
 
 func newResolver(i *interpreter) *resolver {
-	r := &resolver{i, list.New()}
+	r := &resolver{i, list.New(), false}
 
 	return r
 }
@@ -68,10 +79,13 @@ func (r *resolver) visitExpressionStmt(stmt *Expression[any]) error {
 }
 
 func (r *resolver) visitFunctionStmt(funcStmt *Function[any]) error {
-	r.declare(funcStmt.name)
+	err := r.declare(funcStmt.name)
+	if err != nil {
+		return err
+	}
 	r.define(funcStmt.name)
 
-	err := r.resolveFunction(funcStmt)
+	err = r.resolveFunction(funcStmt)
 	return err
 }
 
@@ -117,6 +131,9 @@ func (r *resolver) visitPrintStmt(stmt *Print[any]) error {
 }
 
 func (r *resolver) visitReturnStmt(stmt *Return[any]) (err error) {
+	if !r.inFunc {
+		return &ResolverError{t: stmt.keyword, message: "Can't return from top-level code."}
+	}
 	if stmt.value != nil {
 		_, err = r.resolveExpression(stmt.value)
 	}
@@ -130,7 +147,10 @@ func (r *resolver) visitUnaryExpr(e *Unary[any]) (any, error) {
 }
 
 func (r *resolver) visitVarStmt(s *Var[any]) (err error) {
-	r.declare(s.name)
+	err = r.declare(s.name)
+	if err != nil {
+		return err
+	}
 	if s.initializer != nil {
 		_, err = r.resolveExpression(s.initializer)
 		if err != nil {
@@ -201,17 +221,25 @@ func (r *resolver) resolveLocal(expr Expr[any], name *token) {
 	}
 }
 
-func (r *resolver) resolveFunction(function *Function[any]) error {
+func (r *resolver) resolveFunction(function *Function[any]) (err error) {
+	inEnclosingFunc := r.inFunc
+	r.inFunc = true
+
 	r.beginScope()
 	for _, param := range function.params {
-		r.declare(param)
+		err = r.declare(param)
+		if err != nil {
+			return err
+		}
 		r.define(param)
 	}
-	err := r.resolve(function.body)
+	err = r.resolve(function.body)
 	if err != nil {
 		return err
 	}
 	r.endScope()
+
+	r.inFunc = inEnclosingFunc
 
 	return nil
 }
@@ -224,13 +252,19 @@ func (r *resolver) endScope() {
 	r.scopes.Remove(r.scopes.Back())
 }
 
-func (r *resolver) declare(name *token) {
+func (r *resolver) declare(name *token) error {
 	if r.scopes.Len() == 0 {
-		return
+		return nil
 	}
 
 	scope := r.scopes.Back().Value.(map[string]bool)
+	_, ok := scope[name.lexeme]
+	if ok {
+		return &ResolverError{t: name, message: "Already a variable with this name in this scope."}
+	}
 	scope[name.lexeme] = false
+
+	return nil
 }
 
 func (r *resolver) define(name *token) {
