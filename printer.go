@@ -160,6 +160,12 @@ func (p *astPrinter) visitFunctionStmt(funcStmt *Function[string]) error {
 	return nil
 }
 
+func (p *astPrinter) visitClassStmt(stmt *Class[string]) error {
+	p.println(fmt.Sprintf("class %v {", stmt.name.lexeme))
+	p.println("}")
+	return nil
+}
+
 func (p *astPrinter) visitCallExpr(e *Call[string]) (string, error) {
 	callee, err := e.callee.accept(p)
 	if err != nil {

@@ -11,6 +11,7 @@ type Visitor[T any] interface {
 	visitVariableExpr(e *Variable[T]) (T, error)
 
 	visitBlockStmt(s *Block[T]) error
+	visitClassStmt(c *Class[T]) error
 	visitExpressionStmt(s *Expression[T]) error
 	visitFunctionStmt(s *Function[T]) error
 	visitIfStmt(ifStmt *If[T]) error

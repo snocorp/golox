@@ -2,11 +2,10 @@ package main
 
 type Expr[T any] interface {
 	accept(v Visitor[T]) (T, error)
-	String() string
 }
 
 type Assign[T any] struct {
-	name  *token
+	name *token
 	value Expr[T]
 }
 
@@ -15,9 +14,9 @@ func (e *Assign[T]) accept(v Visitor[T]) (T, error) {
 }
 
 type Binary[T any] struct {
-	left     Expr[T]
+	left Expr[T]
 	operator *token
-	right    Expr[T]
+	right Expr[T]
 }
 
 func (e *Binary[T]) accept(v Visitor[T]) (T, error) {
@@ -25,8 +24,8 @@ func (e *Binary[T]) accept(v Visitor[T]) (T, error) {
 }
 
 type Call[T any] struct {
-	callee    Expr[T]
-	paren     *token
+	callee Expr[T]
+	paren *token
 	arguments []Expr[T]
 }
 
@@ -51,9 +50,9 @@ func (e *Literal[T]) accept(v Visitor[T]) (T, error) {
 }
 
 type Logical[T any] struct {
-	left     Expr[T]
+	left Expr[T]
 	operator *token
-	right    Expr[T]
+	right Expr[T]
 }
 
 func (e *Logical[T]) accept(v Visitor[T]) (T, error) {
@@ -62,7 +61,7 @@ func (e *Logical[T]) accept(v Visitor[T]) (T, error) {
 
 type Unary[T any] struct {
 	operator *token
-	right    Expr[T]
+	right Expr[T]
 }
 
 func (e *Unary[T]) accept(v Visitor[T]) (T, error) {
@@ -76,3 +75,4 @@ type Variable[T any] struct {
 func (e *Variable[T]) accept(v Visitor[T]) (T, error) {
 	return v.visitVariableExpr(e)
 }
+

@@ -12,6 +12,15 @@ func (e *Block[T]) accept(v Visitor[T]) error {
 	return v.visitBlockStmt(e)
 }
 
+type Class[T any] struct {
+	name *token
+	methods []*Function[T]
+}
+
+func (e *Class[T]) accept(v Visitor[T]) error {
+	return v.visitClassStmt(e)
+}
+
 type Expression[T any] struct {
 	expression Expr[T]
 }
@@ -21,9 +30,9 @@ func (e *Expression[T]) accept(v Visitor[T]) error {
 }
 
 type Function[T any] struct {
-	name   *token
+	name *token
 	params []*token
-	body   []Stmt[T]
+	body []Stmt[T]
 }
 
 func (e *Function[T]) accept(v Visitor[T]) error {
@@ -31,7 +40,7 @@ func (e *Function[T]) accept(v Visitor[T]) error {
 }
 
 type If[T any] struct {
-	condition  Expr[T]
+	condition Expr[T]
 	thenBranch Stmt[T]
 	elseBranch Stmt[T]
 }
@@ -50,7 +59,7 @@ func (e *Print[T]) accept(v Visitor[T]) error {
 
 type Return[T any] struct {
 	keyword *token
-	value   Expr[T]
+	value Expr[T]
 }
 
 func (e *Return[T]) accept(v Visitor[T]) error {
@@ -58,7 +67,7 @@ func (e *Return[T]) accept(v Visitor[T]) error {
 }
 
 type Var[T any] struct {
-	name        *token
+	name *token
 	initializer Expr[T]
 }
 
@@ -68,9 +77,10 @@ func (e *Var[T]) accept(v Visitor[T]) error {
 
 type While[T any] struct {
 	condition Expr[T]
-	body      Stmt[T]
+	body Stmt[T]
 }
 
 func (e *While[T]) accept(v Visitor[T]) error {
 	return v.visitWhileStmt(e)
 }
+

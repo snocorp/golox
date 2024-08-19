@@ -73,6 +73,17 @@ func (r *resolver) visitCallExpr(e *Call[any]) (any, error) {
 	return nil, nil
 }
 
+func (r *resolver) visitClassStmt(stmt *Class[any]) error {
+	err := r.declare(stmt.name)
+	if err != nil {
+		return err
+	}
+
+	r.define(stmt.name)
+
+	return nil
+}
+
 func (r *resolver) visitExpressionStmt(stmt *Expression[any]) error {
 	_, err := r.resolveExpression(stmt.expression)
 	return err

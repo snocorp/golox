@@ -33,8 +33,9 @@ func main() {
 
 	err = defineAst(outputDir, "Stmt", "error", []string{
 		"Block      : statements []Stmt[T]",
+		"Class      : name *token, methods []*Function[T]",
 		"Expression : expression Expr[T]",
-		"Function   : name *token, params []*token, body *Block[T]",
+		"Function   : name *token, params []*token, body []Stmt[T]",
 		"If         : condition Expr[T], thenBranch Stmt[T], elseBranch Stmt[T]",
 		"Print      : expression Expr[T]",
 		"Return     : keyword *token, value Expr[T]",

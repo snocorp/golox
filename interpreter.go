@@ -311,6 +311,21 @@ func (v *interpreter) visitFunctionStmt(funcStmt *Function[any]) error {
 	return nil
 }
 
+func (v *interpreter) visitClassStmt(stmt *Class[any]) error {
+	err := v.env.define(stmt.name, nil)
+	if err != nil {
+		return err
+	}
+
+	class := LoxClass{stmt.name.lexeme}
+	err = v.env.assign(stmt.name, class)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (v *interpreter) evaluate(e Expr[any]) (any, error) {
 	return e.accept(v)
 }

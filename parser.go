@@ -46,6 +46,9 @@ func (p *Parser[T]) parse() ([]Stmt[T], error) {
 }
 
 func (p *Parser[T]) declaration() (Stmt[T], error) {
+	if p.match(CLASS) {
+		return p.classDeclaration()
+	}
 	if p.match(FUN) {
 		return p.function("function")
 	}
@@ -100,7 +103,7 @@ func (p *Parser[T]) returnStatement() (Stmt[T], error) {
 	return &Return[T]{keyword, value}, nil
 }
 
-func (p *Parser[T]) function(kind string) (Stmt[T], error) {
+func (p *Parser[T]) function(kind string) (*Function[T], error) {
 	name, err := p.consume(IDENTIFIER, "Expect "+kind+" name.")
 	if err != nil {
 		return nil, err
@@ -293,6 +296,33 @@ func (p *Parser[T]) block() (*Block[T], error) {
 	}
 
 	return &Block[T]{statements: statements}, nil
+}
+
+func (p *Parser[T]) classDeclaration() (Stmt[T], error) {
+	name, err := p.consume(IDENTIFIER, "Expect class name.")
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(LEFT_BRACE, "Expect '{' before class body.")
+	if err != nil {
+		return nil, err
+	}
+
+	methods := []*Function[T]{}
+	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
+		fn, err := p.function("method")
+		if err != nil {
+			return nil, err
+		}
+		methods = append(methods, fn)
+	}
+
+	_, err = p.consume(RIGHT_BRACE, "Expect '}' after class body.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Class[T]{name: name, methods: methods}, nil
 }
 
 func (p *Parser[T]) varDeclaration() (Stmt[T], error) {
