@@ -91,3 +91,8 @@ func newToken(tokenType int, lexeme string, literal any, line int) *token {
 func (t *token) String() string {
 	return fmt.Sprintf("%v %v %v", t.tokenType, t.lexeme, t.literal)
 }
+
+type LoxCallable interface {
+	arity() int
+	call(v *interpreter, arguments []any) (any, error)
+}

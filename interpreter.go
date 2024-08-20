@@ -22,11 +22,6 @@ func (err *ReturnError) Error() string {
 	return fmt.Sprintf("Return: %s", err.value)
 }
 
-type LoxCallable interface {
-	arity() int
-	call(v *interpreter, arguments []any) (any, error)
-}
-
 type interpreter struct {
 	globals *Environment
 	env     *Environment
@@ -152,6 +147,7 @@ func (v *interpreter) visitCallExpr(e *Call[any]) (any, error) {
 
 	function, ok := callee.(LoxCallable)
 	if !ok {
+		fmt.Printf("%v\n", callee)
 		return nil, &RuntimeError{t: e.paren, message: "Can only call functions and classes."}
 	}
 
@@ -317,7 +313,7 @@ func (v *interpreter) visitClassStmt(stmt *Class[any]) error {
 		return err
 	}
 
-	class := LoxClass{stmt.name.lexeme}
+	class := &LoxClass{stmt.name.lexeme}
 	err = v.env.assign(stmt.name, class)
 	if err != nil {
 		return err
