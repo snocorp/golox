@@ -322,6 +322,22 @@ func (v *interpreter) visitClassStmt(stmt *Class[any]) error {
 	return nil
 }
 
+func (v *interpreter) visitGetExpr(expr *Get[any]) (any, error) {
+	object, err := v.evaluate(expr.object)
+	if err != nil {
+		return nil, err
+	}
+	instance, ok := object.(LoxInstance)
+	if ok {
+		return instance.get(expr.name)
+	}
+
+	return nil, &RuntimeError{
+		t:       expr.name,
+		message: "Only instances have properties.",
+	}
+}
+
 func (v *interpreter) evaluate(e Expr[any]) (any, error) {
 	return e.accept(v)
 }

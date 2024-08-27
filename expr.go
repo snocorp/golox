@@ -33,6 +33,15 @@ func (e *Call[T]) accept(v Visitor[T]) (T, error) {
 	return v.visitCallExpr(e)
 }
 
+type Get[T any] struct {
+	object Expr[T]
+	name *token
+}
+
+func (e *Get[T]) accept(v Visitor[T]) (T, error) {
+	return v.visitGetExpr(e)
+}
+
 type Grouping[T any] struct {
 	expression Expr[T]
 }

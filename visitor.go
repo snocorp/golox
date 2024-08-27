@@ -4,6 +4,7 @@ type Visitor[T any] interface {
 	visitAssignExpr(e *Assign[T]) (T, error)
 	visitBinaryExpr(e *Binary[T]) (T, error)
 	visitCallExpr(e *Call[T]) (T, error)
+	visitGetExpr(e *Get[T]) (T, error)
 	visitGroupingExpr(e *Grouping[T]) (T, error)
 	visitLiteralExpr(e *Literal[T]) (T, error)
 	visitLogicalExpr(e *Logical[T]) (T, error)

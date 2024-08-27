@@ -166,6 +166,16 @@ func (p *astPrinter) visitClassStmt(stmt *Class[string]) error {
 	return nil
 }
 
+func (p *astPrinter) visitGetExpr(expr *Get[string]) (string, error) {
+	obj, err := expr.object.accept(p)
+	if err != nil {
+		return "", err
+	}
+
+	result := fmt.Sprintf("%v.%v", obj, expr.name.lexeme)
+	return result, nil
+}
+
 func (p *astPrinter) visitCallExpr(e *Call[string]) (string, error) {
 	callee, err := e.callee.accept(p)
 	if err != nil {

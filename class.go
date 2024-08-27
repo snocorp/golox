@@ -19,13 +19,23 @@ func (c LoxClass) String() string {
 }
 
 type LoxInstance struct {
-	class *LoxClass
+	class  *LoxClass
+	fields map[string]any
 }
 
 func newLoxInstance(class *LoxClass) *LoxInstance {
-	return &LoxInstance{class: class}
+	return &LoxInstance{class: class, fields: map[string]any{}}
 }
 
 func (i LoxInstance) String() string {
 	return fmt.Sprintf("<instance %v>", i.class.name)
+}
+
+func (i LoxInstance) get(name *token) (any, error) {
+	field, ok := i.fields[name.lexeme]
+	if ok {
+		return field, nil
+	}
+
+	return nil, &RuntimeError{t: name, message: fmt.Sprintf("Undefined property '%v'", name.lexeme)}
 }

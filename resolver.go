@@ -84,6 +84,10 @@ func (r *resolver) visitClassStmt(stmt *Class[any]) error {
 	return nil
 }
 
+func (r *resolver) visitGetExpr(expr *Get[any]) (any, error) {
+	return r.resolveExpression(expr.object)
+}
+
 func (r *resolver) visitExpressionStmt(stmt *Expression[any]) error {
 	_, err := r.resolveExpression(stmt.expression)
 	return err

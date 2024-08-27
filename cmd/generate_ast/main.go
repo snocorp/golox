@@ -20,6 +20,7 @@ func main() {
 		"Assign   : name *token, value Expr[T]",
 		"Binary   : left Expr[T], operator *token, right Expr[T]",
 		"Call     : callee Expr[T], paren *token, arguments []Expr[T]",
+		"Get      : object Expr[T], name *token",
 		"Grouping : expression Expr[T]",
 		"Literal  : value any",
 		"Logical  : left Expr[T], operator *token, right Expr[T]",

@@ -534,10 +534,20 @@ func (p *Parser[T]) call() (Expr[T], error) {
 		return nil, err
 	}
 
-	for p.match(LEFT_PAREN) {
-		expr, err = p.finishCall(expr)
-		if err != nil {
-			return nil, err
+	for true {
+		if p.match(LEFT_PAREN) {
+			expr, err = p.finishCall(expr)
+			if err != nil {
+				return nil, err
+			}
+		} else if p.match(DOT) {
+			name, err := p.consume(IDENTIFIER, "Expect property name after '.'.")
+			if err != nil {
+				return nil, err
+			}
+			expr = &Get[T]{expr, name}
+		} else {
+			break
 		}
 	}
 
