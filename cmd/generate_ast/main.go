@@ -24,6 +24,7 @@ func main() {
 		"Grouping : expression Expr[T]",
 		"Literal  : value any",
 		"Logical  : left Expr[T], operator *token, right Expr[T]",
+		"Set      : object Expr[T], name *token, value Expr[T]",
 		"Unary    : operator *token, right Expr[T]",
 		"Variable : name *token",
 	})

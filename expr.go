@@ -68,6 +68,16 @@ func (e *Logical[T]) accept(v Visitor[T]) (T, error) {
 	return v.visitLogicalExpr(e)
 }
 
+type Set[T any] struct {
+	object Expr[T]
+	name *token
+	value Expr[T]
+}
+
+func (e *Set[T]) accept(v Visitor[T]) (T, error) {
+	return v.visitSetExpr(e)
+}
+
 type Unary[T any] struct {
 	operator *token
 	right Expr[T]

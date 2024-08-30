@@ -8,6 +8,7 @@ type Visitor[T any] interface {
 	visitGroupingExpr(e *Grouping[T]) (T, error)
 	visitLiteralExpr(e *Literal[T]) (T, error)
 	visitLogicalExpr(e *Logical[T]) (T, error)
+	visitSetExpr(e *Set[T]) (T, error)
 	visitUnaryExpr(e *Unary[T]) (T, error)
 	visitVariableExpr(e *Variable[T]) (T, error)
 

@@ -88,6 +88,18 @@ func (r *resolver) visitGetExpr(expr *Get[any]) (any, error) {
 	return r.resolveExpression(expr.object)
 }
 
+func (r *resolver) visitSetExpr(expr *Set[any]) (any, error) {
+	var err error
+
+	_, err = r.resolveExpression(expr.value)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = r.resolveExpression(expr.object)
+	return nil, err
+}
+
 func (r *resolver) visitExpressionStmt(stmt *Expression[any]) error {
 	_, err := r.resolveExpression(stmt.expression)
 	return err

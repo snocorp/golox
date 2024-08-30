@@ -31,11 +31,15 @@ func (i LoxInstance) String() string {
 	return fmt.Sprintf("<instance %v>", i.class.name)
 }
 
-func (i LoxInstance) get(name *token) (any, error) {
+func (i *LoxInstance) get(name *token) (any, error) {
 	field, ok := i.fields[name.lexeme]
 	if ok {
 		return field, nil
 	}
 
 	return nil, &RuntimeError{t: name, message: fmt.Sprintf("Undefined property '%v'", name.lexeme)}
+}
+
+func (i *LoxInstance) set(name *token, value any) {
+	i.fields[name.lexeme] = value
 }

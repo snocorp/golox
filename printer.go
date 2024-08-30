@@ -176,6 +176,20 @@ func (p *astPrinter) visitGetExpr(expr *Get[string]) (string, error) {
 	return result, nil
 }
 
+func (p *astPrinter) visitSetExpr(expr *Set[string]) (string, error) {
+	instance, err := expr.object.accept(p)
+	if err != nil {
+		return "", err
+	}
+
+	value, err := expr.value.accept(p)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%v.%v = %v", instance, expr.name.lexeme, value), nil
+}
+
 func (p *astPrinter) visitCallExpr(e *Call[string]) (string, error) {
 	callee, err := e.callee.accept(p)
 	if err != nil {

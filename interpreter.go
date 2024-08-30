@@ -327,7 +327,7 @@ func (v *interpreter) visitGetExpr(expr *Get[any]) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	instance, ok := object.(LoxInstance)
+	instance, ok := object.(*LoxInstance)
 	if ok {
 		return instance.get(expr.name)
 	}
@@ -336,6 +336,27 @@ func (v *interpreter) visitGetExpr(expr *Get[any]) (any, error) {
 		t:       expr.name,
 		message: "Only instances have properties.",
 	}
+}
+
+func (v *interpreter) visitSetExpr(expr *Set[any]) (any, error) {
+	object, err := v.evaluate(expr.object)
+	if err != nil {
+		return nil, err
+	}
+
+	instance, ok := object.(*LoxInstance)
+	if !ok {
+		return nil, &RuntimeError{t: expr.name, message: "Only instances have fields."}
+	}
+
+	value, err := v.evaluate(expr.value)
+	if err != nil {
+		return nil, err
+	}
+
+	instance.set(expr.name, value)
+
+	return value, err
 }
 
 func (v *interpreter) evaluate(e Expr[any]) (any, error) {

@@ -1,3 +1,6 @@
+class Slice {}
 class Bagel {}
 var b = Bagel();
-print b;
+b.top = Slice();
+b.top.topping = "Butter";
+print b.top.topping;

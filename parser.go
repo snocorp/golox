@@ -399,6 +399,11 @@ func (p *Parser[T]) assignment() (Expr[T], error) {
 			return &Assign[T]{name: name, value: value}, nil
 		}
 
+		get, ok := expr.(*Get[T])
+		if ok {
+			return &Set[T]{object: get.object, name: get.name, value: value}, nil
+		}
+
 		return nil, p.error(equals, "Invalid assignment target.")
 	}
 
