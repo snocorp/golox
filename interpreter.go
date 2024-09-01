@@ -313,7 +313,12 @@ func (v *interpreter) visitClassStmt(stmt *Class[any]) error {
 		return err
 	}
 
-	class := &LoxClass{stmt.name.lexeme}
+	methods := map[string]*LoxFunction{}
+	for _, method := range stmt.methods {
+		methods[method.name.lexeme] = &LoxFunction{declaration: method, closure: v.env}
+	}
+
+	class := newLoxClass(stmt.name.lexeme, methods)
 	err = v.env.assign(stmt.name, class)
 	if err != nil {
 		return err

@@ -15,13 +15,13 @@ func (err *ResolverError) Error() string {
 }
 
 type resolver struct {
-	i      *interpreter
-	scopes *list.List
-	inFunc bool
+	i          *interpreter
+	scopes     *list.List
+	inFuncType int
 }
 
 func newResolver(i *interpreter) *resolver {
-	r := &resolver{i, list.New(), false}
+	r := &resolver{i, list.New(), FUNC_TYPE_NONE}
 
 	return r
 }
@@ -81,6 +81,10 @@ func (r *resolver) visitClassStmt(stmt *Class[any]) error {
 
 	r.define(stmt.name)
 
+	for _, method := range stmt.methods {
+		r.resolveFunction(method, FUNC_TYPE_METHOD)
+	}
+
 	return nil
 }
 
@@ -112,7 +116,7 @@ func (r *resolver) visitFunctionStmt(funcStmt *Function[any]) error {
 	}
 	r.define(funcStmt.name)
 
-	err = r.resolveFunction(funcStmt)
+	err = r.resolveFunction(funcStmt, FUNC_TYPE_FUNCTION)
 	return err
 }
 
@@ -158,7 +162,7 @@ func (r *resolver) visitPrintStmt(stmt *Print[any]) error {
 }
 
 func (r *resolver) visitReturnStmt(stmt *Return[any]) (err error) {
-	if !r.inFunc {
+	if r.inFuncType == FUNC_TYPE_NONE {
 		return &ResolverError{t: stmt.keyword, message: "Can't return from top-level code."}
 	}
 	if stmt.value != nil {
@@ -248,9 +252,9 @@ func (r *resolver) resolveLocal(expr Expr[any], name *token) {
 	}
 }
 
-func (r *resolver) resolveFunction(function *Function[any]) (err error) {
-	inEnclosingFunc := r.inFunc
-	r.inFunc = true
+func (r *resolver) resolveFunction(function *Function[any], funcType int) (err error) {
+	inEnclosingFuncType := r.inFuncType
+	r.inFuncType = funcType
 
 	r.beginScope()
 	for _, param := range function.params {
@@ -266,7 +270,7 @@ func (r *resolver) resolveFunction(function *Function[any]) (err error) {
 	}
 	r.endScope()
 
-	r.inFunc = inEnclosingFunc
+	r.inFuncType = inEnclosingFuncType
 
 	return nil
 }

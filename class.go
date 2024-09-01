@@ -3,7 +3,12 @@ package main
 import "fmt"
 
 type LoxClass struct {
-	name string
+	name    string
+	methods map[string]*LoxFunction
+}
+
+func newLoxClass(name string, methods map[string]*LoxFunction) *LoxClass {
+	return &LoxClass{name: name, methods: methods}
 }
 
 func (c *LoxClass) arity() int {
@@ -35,6 +40,11 @@ func (i *LoxInstance) get(name *token) (any, error) {
 	field, ok := i.fields[name.lexeme]
 	if ok {
 		return field, nil
+	}
+
+	method, ok := i.class.methods[name.lexeme]
+	if ok {
+		return method, nil
 	}
 
 	return nil, &RuntimeError{t: name, message: fmt.Sprintf("Undefined property '%v'", name.lexeme)}
