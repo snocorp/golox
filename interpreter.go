@@ -298,7 +298,7 @@ func (v *interpreter) visitWhileStmt(whileStmt *While[any]) error {
 }
 
 func (v *interpreter) visitFunctionStmt(funcStmt *Function[any]) error {
-	function := &LoxFunction{funcStmt, v.env}
+	function := &LoxFunction{declaration: funcStmt, closure: v.env, isInitializer: false}
 	err := v.env.define(funcStmt.name, function)
 	if err != nil {
 		return err
@@ -315,7 +315,12 @@ func (v *interpreter) visitClassStmt(stmt *Class[any]) error {
 
 	methods := map[string]*LoxFunction{}
 	for _, method := range stmt.methods {
-		methods[method.name.lexeme] = &LoxFunction{declaration: method, closure: v.env}
+		isInitializer := method.name.lexeme == "init"
+		methods[method.name.lexeme] = &LoxFunction{
+			declaration:   method,
+			closure:       v.env,
+			isInitializer: isInitializer,
+		}
 	}
 
 	class := newLoxClass(stmt.name.lexeme, methods)

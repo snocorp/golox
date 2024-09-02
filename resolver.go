@@ -8,6 +8,7 @@ import (
 const (
 	FUNC_TYPE_NONE     = iota
 	FUNC_TYPE_FUNCTION = iota
+	FUNC_TYPE_INIT     = iota
 	FUNC_TYPE_METHOD   = iota
 )
 
@@ -101,7 +102,14 @@ func (r *resolver) visitClassStmt(stmt *Class[any]) error {
 	scope["this"] = true
 
 	for _, method := range stmt.methods {
-		r.resolveFunction(method, FUNC_TYPE_METHOD)
+		funcType := FUNC_TYPE_METHOD
+		if method.name.lexeme == "init" {
+			funcType = FUNC_TYPE_INIT
+		}
+		err := r.resolveFunction(method, funcType)
+		if err != nil {
+			return err
+		}
 	}
 
 	r.endScope()
@@ -197,6 +205,10 @@ func (r *resolver) visitReturnStmt(stmt *Return[any]) (err error) {
 		return &ResolverError{t: stmt.keyword, message: "Can't return from top-level code."}
 	}
 	if stmt.value != nil {
+		if r.inFuncType == FUNC_TYPE_INIT {
+			return &ResolverError{t: stmt.keyword, message: "Can't return from an initializer."}
+		}
+
 		_, err = r.resolveExpression(stmt.value)
 	}
 

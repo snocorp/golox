@@ -12,11 +12,28 @@ func newLoxClass(name string, methods map[string]*LoxFunction) *LoxClass {
 }
 
 func (c *LoxClass) arity() int {
+	initializer, ok := c.methods["init"]
+	if ok {
+		return initializer.arity()
+	}
 	return 0
 }
 
 func (c *LoxClass) call(v *interpreter, arguments []any) (any, error) {
-	return newLoxInstance(c), nil
+	instance := newLoxInstance(c)
+	initializer, ok := c.methods["init"]
+	if ok {
+		f, err := initializer.bind(instance)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = f.call(v, arguments)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return instance, nil
 }
 
 func (c LoxClass) String() string {
