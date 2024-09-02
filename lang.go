@@ -52,12 +52,6 @@ const (
 	EOF = iota
 )
 
-const (
-	FUNC_TYPE_NONE     = iota
-	FUNC_TYPE_FUNCTION = iota
-	FUNC_TYPE_METHOD   = iota
-)
-
 var keywords = map[string]int{
 	"and":    AND,
 	"class":  CLASS,

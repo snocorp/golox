@@ -5,6 +5,17 @@ import (
 	"fmt"
 )
 
+const (
+	FUNC_TYPE_NONE     = iota
+	FUNC_TYPE_FUNCTION = iota
+	FUNC_TYPE_METHOD   = iota
+)
+
+const (
+	CLASS_TYPE_NONE  = iota
+	CLASS_TYPE_CLASS = iota
+)
+
 type ResolverError struct {
 	t       *token
 	message string
@@ -15,13 +26,14 @@ func (err *ResolverError) Error() string {
 }
 
 type resolver struct {
-	i          *interpreter
-	scopes     *list.List
-	inFuncType int
+	i           *interpreter
+	scopes      *list.List
+	inFuncType  int
+	inClassType int
 }
 
 func newResolver(i *interpreter) *resolver {
-	r := &resolver{i, list.New(), FUNC_TYPE_NONE}
+	r := &resolver{i, list.New(), FUNC_TYPE_NONE, CLASS_TYPE_NONE}
 
 	return r
 }
@@ -74,6 +86,9 @@ func (r *resolver) visitCallExpr(e *Call[any]) (any, error) {
 }
 
 func (r *resolver) visitClassStmt(stmt *Class[any]) error {
+	inEnclosingClassType := r.inClassType
+	r.inClassType = CLASS_TYPE_CLASS
+
 	err := r.declare(stmt.name)
 	if err != nil {
 		return err
@@ -90,6 +105,8 @@ func (r *resolver) visitClassStmt(stmt *Class[any]) error {
 	}
 
 	r.endScope()
+
+	r.inClassType = inEnclosingClassType
 
 	return nil
 }
@@ -111,6 +128,9 @@ func (r *resolver) visitSetExpr(expr *Set[any]) (any, error) {
 }
 
 func (r *resolver) visitThisExpr(e *This[any]) (any, error) {
+	if r.inClassType == CLASS_TYPE_NONE {
+		return nil, &ResolverError{t: e.keyword, message: "Can't use 'this' outside of a class."}
+	}
 	r.resolveLocal(e, e.keyword)
 	return nil, nil
 }
