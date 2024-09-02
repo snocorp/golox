@@ -602,6 +602,10 @@ func (p *Parser[T]) primary() (Expr[T], error) {
 		return &Literal[T]{value: p.previous().literal}, nil
 	}
 
+	if p.match(THIS) {
+		return &This[T]{keyword: p.previous()}, nil
+	}
+
 	if p.match(IDENTIFIER) {
 		return &Variable[T]{name: p.previous()}, nil
 	}

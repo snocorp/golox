@@ -364,6 +364,10 @@ func (v *interpreter) visitSetExpr(expr *Set[any]) (any, error) {
 	return value, err
 }
 
+func (v *interpreter) visitThisExpr(expr *This[any]) (any, error) {
+	return v.lookUpVariable(expr.keyword, expr)
+}
+
 func (v *interpreter) evaluate(e Expr[any]) (any, error) {
 	return e.accept(v)
 }
@@ -396,7 +400,7 @@ func (v *interpreter) lookUpVariable(name *token, expr Expr[any]) (any, error) {
 	if ok {
 		value, ok := v.env.getAt(distance, name.lexeme)
 		if !ok {
-			return nil, &RuntimeError{t: name, message: "Variable is not found"}
+			return nil, &RuntimeError{t: name, message: fmt.Sprintf("Variable '%v' is not found", name.lexeme)}
 		}
 		return value, nil
 	} else {

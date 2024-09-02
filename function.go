@@ -31,6 +31,16 @@ func (f *LoxFunction) call(v *interpreter, arguments []any) (r any, err error) {
 	return nil, err
 }
 
+func (f *LoxFunction) bind(instance *LoxInstance) (*LoxFunction, error) {
+	env := newEnvironment(f.closure)
+	err := env.define(&token{tokenType: THIS, lexeme: "this"}, instance)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LoxFunction{declaration: f.declaration, closure: env}, nil
+}
+
 func (f LoxFunction) String() string {
 	return fmt.Sprintf("<fn %v>", f.declaration.name.lexeme)
 }

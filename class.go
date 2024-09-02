@@ -44,6 +44,11 @@ func (i *LoxInstance) get(name *token) (any, error) {
 
 	method, ok := i.class.methods[name.lexeme]
 	if ok {
+		method, err := method.bind(i)
+		if err != nil {
+			return nil, err
+		}
+
 		return method, nil
 	}
 

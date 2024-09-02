@@ -199,6 +199,10 @@ func (p *astPrinter) visitCallExpr(e *Call[string]) (string, error) {
 	return p.parenthesize(fmt.Sprintf("call: %v", callee), e.arguments...)
 }
 
+func (p *astPrinter) visitThisExpr(e *This[string]) (string, error) {
+	return "this", nil
+}
+
 func (p *astPrinter) println(s string) {
 	fmt.Printf("%v%s\n", strings.Repeat(" ", p.indent), s)
 }

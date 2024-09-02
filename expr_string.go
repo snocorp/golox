@@ -26,6 +26,10 @@ func (e *Logical[T]) String() string {
 	return fmt.Sprintf("%v %v %v", e.left, e.operator.lexeme, e.right)
 }
 
+func (e *This[T]) String() string {
+	return "this"
+}
+
 func (e *Unary[T]) String() string {
 	return fmt.Sprintf("%v %v", e.operator, e.right)
 }

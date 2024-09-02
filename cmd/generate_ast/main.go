@@ -25,6 +25,7 @@ func main() {
 		"Literal  : value any",
 		"Logical  : left Expr[T], operator *token, right Expr[T]",
 		"Set      : object Expr[T], name *token, value Expr[T]",
+		"This     : keyword *token",
 		"Unary    : operator *token, right Expr[T]",
 		"Variable : name *token",
 	})

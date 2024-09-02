@@ -78,6 +78,14 @@ func (e *Set[T]) accept(v Visitor[T]) (T, error) {
 	return v.visitSetExpr(e)
 }
 
+type This[T any] struct {
+	keyword *token
+}
+
+func (e *This[T]) accept(v Visitor[T]) (T, error) {
+	return v.visitThisExpr(e)
+}
+
 type Unary[T any] struct {
 	operator *token
 	right Expr[T]

@@ -81,9 +81,15 @@ func (r *resolver) visitClassStmt(stmt *Class[any]) error {
 
 	r.define(stmt.name)
 
+	r.beginScope()
+	scope := r.scopes.Back().Value.(map[string]bool)
+	scope["this"] = true
+
 	for _, method := range stmt.methods {
 		r.resolveFunction(method, FUNC_TYPE_METHOD)
 	}
+
+	r.endScope()
 
 	return nil
 }
@@ -102,6 +108,11 @@ func (r *resolver) visitSetExpr(expr *Set[any]) (any, error) {
 
 	_, err = r.resolveExpression(expr.object)
 	return nil, err
+}
+
+func (r *resolver) visitThisExpr(e *This[any]) (any, error) {
+	r.resolveLocal(e, e.keyword)
+	return nil, nil
 }
 
 func (r *resolver) visitExpressionStmt(stmt *Expression[any]) error {
