@@ -25,6 +25,7 @@ func main() {
 		"Literal  : value any",
 		"Logical  : left Expr[T], operator *token, right Expr[T]",
 		"Set      : object Expr[T], name *token, value Expr[T]",
+		"Super    : keyword *token, method *token",
 		"This     : keyword *token",
 		"Unary    : operator *token, right Expr[T]",
 		"Variable : name *token",
@@ -36,7 +37,7 @@ func main() {
 
 	err = defineAst(outputDir, "Stmt", "error", []string{
 		"Block      : statements []Stmt[T]",
-		"Class      : name *token, methods []*Function[T]",
+		"Class      : name *token, superclass *Variable[T], methods []*Function[T]",
 		"Expression : expression Expr[T]",
 		"Function   : name *token, params []*token, body []Stmt[T]",
 		"If         : condition Expr[T], thenBranch Stmt[T], elseBranch Stmt[T]",

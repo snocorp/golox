@@ -78,6 +78,15 @@ func (e *Set[T]) accept(v Visitor[T]) (T, error) {
 	return v.visitSetExpr(e)
 }
 
+type Super[T any] struct {
+	keyword *token
+	method *token
+}
+
+func (e *Super[T]) accept(v Visitor[T]) (T, error) {
+	return v.visitSuperExpr(e)
+}
+
 type This[T any] struct {
 	keyword *token
 }

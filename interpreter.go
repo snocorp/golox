@@ -308,9 +308,28 @@ func (v *interpreter) visitFunctionStmt(funcStmt *Function[any]) error {
 }
 
 func (v *interpreter) visitClassStmt(stmt *Class[any]) error {
+	var superclass *LoxClass
+	if stmt.superclass != nil {
+		sc, err := v.evaluate(stmt.superclass)
+		if err != nil {
+			return err
+		}
+
+		var ok bool
+		superclass, ok = sc.(*LoxClass)
+		if !ok {
+			return &RuntimeError{t: stmt.superclass.name, message: "Superclass must be a class."}
+		}
+	}
+
 	err := v.env.define(stmt.name, nil)
 	if err != nil {
 		return err
+	}
+
+	if stmt.superclass != nil {
+		v.env = newEnvironment(v.env)
+		v.env.define(&token{tokenType: SUPER, lexeme: "super"}, superclass)
 	}
 
 	methods := map[string]*LoxFunction{}
@@ -323,7 +342,12 @@ func (v *interpreter) visitClassStmt(stmt *Class[any]) error {
 		}
 	}
 
-	class := newLoxClass(stmt.name.lexeme, methods)
+	class := newLoxClass(stmt.name.lexeme, superclass, methods)
+
+	if stmt.superclass != nil {
+		v.env = v.env.enclosing
+	}
+
 	err = v.env.assign(stmt.name, class)
 	if err != nil {
 		return err
@@ -371,6 +395,40 @@ func (v *interpreter) visitSetExpr(expr *Set[any]) (any, error) {
 
 func (v *interpreter) visitThisExpr(expr *This[any]) (any, error) {
 	return v.lookUpVariable(expr.keyword, expr)
+}
+
+func (v *interpreter) visitSuperExpr(expr *Super[any]) (any, error) {
+	distance := v.locals[expr]
+	sc, ok := v.env.getAt(distance, "super")
+	if !ok {
+		return nil, &RuntimeError{t: expr.keyword, message: "Unable to find superclass."}
+	}
+
+	superclass, ok := sc.(*LoxClass)
+	if !ok {
+		return nil, &RuntimeError{t: expr.keyword, message: "Unable to cast superclass."}
+	}
+
+	object, ok := v.env.getAt(distance-1, "this")
+	if !ok {
+		return nil, &RuntimeError{t: expr.keyword, message: "Unable to find superclass instance."}
+	}
+
+	instance, ok := object.(*LoxInstance)
+	if !ok {
+		return nil, &RuntimeError{t: expr.keyword, message: "Unable to cast superclass instance."}
+	}
+
+	method := superclass.findMethod(expr.method.lexeme)
+
+	if method == nil {
+		return nil, &RuntimeError{
+			t:       expr.method,
+			message: fmt.Sprintf("Undefined property '%v'.", expr.method.lexeme),
+		}
+	}
+
+	return method.bind(instance)
 }
 
 func (v *interpreter) evaluate(e Expr[any]) (any, error) {

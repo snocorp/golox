@@ -203,6 +203,10 @@ func (p *astPrinter) visitThisExpr(e *This[string]) (string, error) {
 	return "this", nil
 }
 
+func (p *astPrinter) visitSuperExpr(e *Super[string]) (string, error) {
+	return fmt.Sprintf("super.%v", e.method.lexeme), nil
+}
+
 func (p *astPrinter) println(s string) {
 	fmt.Printf("%v%s\n", strings.Repeat(" ", p.indent), s)
 }

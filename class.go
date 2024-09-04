@@ -3,17 +3,18 @@ package main
 import "fmt"
 
 type LoxClass struct {
-	name    string
-	methods map[string]*LoxFunction
+	name       string
+	superclass *LoxClass
+	methods    map[string]*LoxFunction
 }
 
-func newLoxClass(name string, methods map[string]*LoxFunction) *LoxClass {
-	return &LoxClass{name: name, methods: methods}
+func newLoxClass(name string, superclass *LoxClass, methods map[string]*LoxFunction) *LoxClass {
+	return &LoxClass{name: name, superclass: superclass, methods: methods}
 }
 
 func (c *LoxClass) arity() int {
-	initializer, ok := c.methods["init"]
-	if ok {
+	initializer := c.findMethod("init")
+	if initializer != nil {
 		return initializer.arity()
 	}
 	return 0
@@ -21,8 +22,8 @@ func (c *LoxClass) arity() int {
 
 func (c *LoxClass) call(v *interpreter, arguments []any) (any, error) {
 	instance := newLoxInstance(c)
-	initializer, ok := c.methods["init"]
-	if ok {
+	initializer := c.findMethod("init")
+	if initializer != nil {
 		f, err := initializer.bind(instance)
 		if err != nil {
 			return nil, err
@@ -34,6 +35,19 @@ func (c *LoxClass) call(v *interpreter, arguments []any) (any, error) {
 		}
 	}
 	return instance, nil
+}
+
+func (c LoxClass) findMethod(name string) *LoxFunction {
+	m, ok := c.methods[name]
+	if ok {
+		return m
+	}
+
+	if c.superclass != nil {
+		return c.superclass.findMethod(name)
+	}
+
+	return nil
 }
 
 func (c LoxClass) String() string {
@@ -59,8 +73,8 @@ func (i *LoxInstance) get(name *token) (any, error) {
 		return field, nil
 	}
 
-	method, ok := i.class.methods[name.lexeme]
-	if ok {
+	method := i.class.findMethod(name.lexeme)
+	if method != nil {
 		method, err := method.bind(i)
 		if err != nil {
 			return nil, err

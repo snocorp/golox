@@ -14,6 +14,7 @@ func (e *Block[T]) accept(v Visitor[T]) error {
 
 type Class[T any] struct {
 	name *token
+	superclass *Variable[T]
 	methods []*Function[T]
 }
 

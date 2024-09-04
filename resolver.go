@@ -13,8 +13,9 @@ const (
 )
 
 const (
-	CLASS_TYPE_NONE  = iota
-	CLASS_TYPE_CLASS = iota
+	CLASS_TYPE_NONE     = iota
+	CLASS_TYPE_CLASS    = iota
+	CLASS_TYPE_SUBCLASS = iota
 )
 
 type ResolverError struct {
@@ -97,6 +98,23 @@ func (r *resolver) visitClassStmt(stmt *Class[any]) error {
 
 	r.define(stmt.name)
 
+	if stmt.superclass != nil {
+		r.inClassType = CLASS_TYPE_SUBCLASS
+
+		if stmt.superclass.name.lexeme == stmt.name.lexeme {
+			return &ResolverError{t: stmt.superclass.name, message: "A class can't inherit from itself."}
+		}
+
+		_, err = r.resolveExpression(stmt.superclass)
+		if err != nil {
+			return err
+		}
+
+		r.beginScope()
+		scope := r.scopes.Back().Value.(map[string]bool)
+		scope["super"] = true
+	}
+
 	r.beginScope()
 	scope := r.scopes.Back().Value.(map[string]bool)
 	scope["this"] = true
@@ -113,6 +131,10 @@ func (r *resolver) visitClassStmt(stmt *Class[any]) error {
 	}
 
 	r.endScope()
+
+	if stmt.superclass != nil {
+		r.endScope()
+	}
 
 	r.inClassType = inEnclosingClassType
 
@@ -139,6 +161,17 @@ func (r *resolver) visitThisExpr(e *This[any]) (any, error) {
 	if r.inClassType == CLASS_TYPE_NONE {
 		return nil, &ResolverError{t: e.keyword, message: "Can't use 'this' outside of a class."}
 	}
+	r.resolveLocal(e, e.keyword)
+	return nil, nil
+}
+
+func (r *resolver) visitSuperExpr(e *Super[any]) (any, error) {
+	if r.inClassType == CLASS_TYPE_NONE {
+		return nil, &ResolverError{t: e.keyword, message: "Can't use 'super' outside of a class."}
+	} else if r.inClassType != CLASS_TYPE_SUBCLASS {
+		return nil, &ResolverError{t: e.keyword, message: "Can't use 'super' in a class with no superclass."}
+	}
+
 	r.resolveLocal(e, e.keyword)
 	return nil, nil
 }
